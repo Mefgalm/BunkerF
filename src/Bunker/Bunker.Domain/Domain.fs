@@ -108,7 +108,7 @@ module Domain
         let regexCheck regex errorMessage value returnFun =
             if not <| Regex.IsMatch(value, regex) then
                 Fail [errorMessage]
-            else Ok <| returnFun
+            else Ok <| returnFun value
     
     module Player =        
         
@@ -116,16 +116,22 @@ module Domain
             Validation.regexCheck "^\w{1,20}$" "NickName is incorrect" nickName PlayerNickName
             
         let createFirstName firstName =
-            Validation.regexCheck "^\w{1,20}$" "FirstName is incorrect" firstName PlayerNickName
-    
-        let create nickName firstName =
-            { Id = NewPlayer
-              NickName = nickName
-              FirstName = firstName
-              JoinedCompanies = []
-              JoinedTeams = []
-              OwnedCompanies = []
-              OwnedTeams = [] }
+            Validation.regexCheck "^\w{1,20}$" "FirstName is incorrect" firstName PlayerFirstName
+                
+        let create nickName firstName =        
+            match createNickName nickName, createFirstName firstName with
+            | Ok n, Ok f ->         
+                Ok { Id = NewPlayer
+                     NickName = n
+                     FirstName = f
+                     JoinedCompanies = []
+                     JoinedTeams = []
+                     OwnedCompanies = []
+                     OwnedTeams = [] }
+            | Fail nl, Fail fl -> Fail <| nl @ fl 
+            | Fail nl, _ -> Fail nl
+            | _, Fail fl -> Fail fl                                            
+            
         
         let update player nickName firstName =
             { player with NickName = nickName
