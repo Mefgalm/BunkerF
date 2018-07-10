@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bunker", "Bunker.fsproj", "{EA35DF8F-3DA2-43F3-96B0-E5A74DC32B78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bunker.Database", "Bunker.Database\Bunker.Database.csproj", "{4850AEBE-7A7B-445B-9698-48E775439C92}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bunker.Domain", "Bunker.Domain\Bunker.Domain.fsproj", "{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA35DF8F-3DA2-43F3-96B0-E5A74DC32B78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA35DF8F-3DA2-43F3-96B0-E5A74DC32B78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA35DF8F-3DA2-43F3-96B0-E5A74DC32B78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA35DF8F-3DA2-43F3-96B0-E5A74DC32B78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4850AEBE-7A7B-445B-9698-48E775439C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4850AEBE-7A7B-445B-9698-48E775439C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4850AEBE-7A7B-445B-9698-48E775439C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4850AEBE-7A7B-445B-9698-48E775439C92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
