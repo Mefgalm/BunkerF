@@ -3,6 +3,17 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Helpers.fs" />
+    <Compile Include="Crypto.fs" />
+    <Compile Include="Types\CommonTypes.fs" />
+    <Compile Include="Types\CompanyTypes.fs" />
+    <Compile Include="Types\PlayerTypes.fs" />
     <Compile Include="Domain.fs" />
+    <Compile Include="Player.fs" />
+    <Compile Include="Company.fs" />
+    <Compile Include="Team.fs" />
+    <Compile Include="Challange.fs" />
+    <Compile Include="Task.fs" />
+    <Compile Include="Answer.fs" />
   </ItemGroup>
 </Project>
