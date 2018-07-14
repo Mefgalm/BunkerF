@@ -12,23 +12,63 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open System
 open System.IO
+open Bunker.Database
+
 
 // ---------------------------------
 // Models
 // ---------------------------------
 module DomainEntity =
     let mapPlayer player =
-        Bunker.Database.Entities.Player(
+        Entities.Player(
             NickName = PlayerNickName.value player.NickName,
             FirstName = PlayerFirstName.value player.FirstName,
             LastName = "",
             Email = "mefgalm@gmail.com",
             PasswordHash = [|(byte) 1|],
             PasswordSalt = [|(byte) 3|]            
-        )               
+        )  
+        
+module EntityDomain =
+    
+    type ForwardBuilder() =
+    
+        member this.Bind(x, f) =
+            match x with
+            | Fail e -> raise <| Exception("")
+            | Ok a -> f a
+        
+        member this.Return(x) = x
+
+    let private forward = new ForwardBuilder()
+
+    let mapPlayer (player: Entities.Player) = forward {
+            let! nickName = PlayerNickName.create player.NickName
+            let! firstName = PlayerFirstName.create player.FirstName
+            
+            return  { Id = PlayerId.Id player.Id
+                      NickName = nickName
+                      FirstName = firstName
+                      JoinedCompanies = []
+                      JoinedTeams = []
+                      OwnedCompanies = []
+                      OwnedTeams = [] }        
+        }
 
 type Message =
     { Text : string }
+    
+
+type MaybeBuilder() =
+    
+    member this.Bind(x, f) =
+        match x with
+        | None -> None
+        | Some e -> e
+    
+    member this.Return(x) = Some x
+   
+let maybe = new MaybeBuilder() 
 
 // ---------------------------------
 // Views
@@ -36,7 +76,7 @@ type Message =
 
 module Repository =
     
-    let saveToDb<'a when 'a : not struct> (dbContext: BunkerDbContext) mapper domainObject =                 
+    let save<'a when 'a : not struct> (dbContext: BunkerDbContext) mapper domainObject =                 
         match domainObject with
         | Ok domObj -> 
             try 
@@ -44,7 +84,22 @@ module Repository =
                 dbContext.SaveChanges() |> ignore
                 Ok domObj
             with e -> Fail [e.Message] 
-        | Fail e -> Fail e                
+        | Fail e -> Fail e
+        
+    let get<'a when 'a : not struct> (dbContext: BunkerDbContext) selector =
+        match dbContext.Set<'a>() |> Seq.tryFind selector with
+        | Some e -> Ok e
+        | None -> Fail ["Entity not found"]
+        
+    let update<'a when 'a : not struct> (dbContext: BunkerDbContext) mapper domainObject =                 
+        match domainObject with
+        | Ok domObj -> 
+            try 
+                dbContext.Set<'a>().Update(domObj |> mapper) |> ignore
+                dbContext.SaveChanges() |> ignore
+                Ok domObj
+            with e -> Fail [e.Message] 
+        | Fail e -> Fail e               
 
 module Views =
     open GiraffeViewEngine
@@ -76,6 +131,12 @@ let indexHandler (name : string) =
 type PlayerCreateRequest =
     { NickName : string
       Name : string }
+      
+[<CLIMutable>]
+type PlayerUpdateRequest =
+    { Id : int
+      NickName : string
+      Name : string }
 
 let createUser : HttpHandler =
     fun next ctx -> 
@@ -83,15 +144,32 @@ let createUser : HttpHandler =
             let! model = ctx.BindJsonAsync<PlayerCreateRequest>()            
             let playerResult = Player.create model.NickName model.Name            
             let dbContext = ctx.GetService<BunkerDbContext>()            
-            let saveToDb = Repository.saveToDb dbContext DomainEntity.mapPlayer playerResult
+            let saveToDb = Repository.save dbContext DomainEntity.mapPlayer playerResult
             
             return! json saveToDb next ctx
         }
+
+let updateUser : HttpHandler =
+    fun next ctx ->
+        task {
+            let! model = ctx.BindJsonAsync<PlayerUpdateRequest>()
+            let dbContext = ctx.GetService<BunkerDbContext>()
+            let dbUpdate = result {
+                let! dbPlayer = Repository.get<Entities.Player> dbContext (fun x -> x.Id = model.Id)
+            
+                let mapPlayer = EntityDomain.mapPlayer dbPlayer
+                let player = Player.update mapPlayer model.NickName model.Name
+                
+                return Repository.update dbContext DomainEntity.mapPlayer player
+            }
+            return! json dbUpdate next ctx
+        }        
 
 let webApp =
     choose [ GET >=> choose [ route "/" >=> indexHandler "world"
                               routef "/hello/%s" indexHandler ]
              POST >=> choose [ route "/user" >=> createUser ]
+             PUT >=> choose [ route "/user" >=> updateUser ]
              setStatusCode 404 >=> text "Not Found" ]
 
 // ---------------------------------

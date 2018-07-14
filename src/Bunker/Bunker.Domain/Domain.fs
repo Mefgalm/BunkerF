@@ -164,9 +164,13 @@ module Player =
                      OwnedTeams = [] }
         }
     
-    let update player nickName firstName =
-        { player with NickName = nickName
-                      FirstName = firstName }
+    let update player nickName firstName = result {
+            let! nickName = PlayerNickName.create nickName
+            let! firstName = PlayerFirstName.create firstName
+    
+            return { player with NickName = nickName
+                                 FirstName = firstName }
+        }            
 
 module Company =
     let findCompany companyId player =
