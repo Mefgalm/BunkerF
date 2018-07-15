@@ -1,7 +1,6 @@
 module BrainBunker.App
 
 open Bunker.Database
-open Domain
 open Giraffe
 open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Builder
@@ -13,20 +12,21 @@ open Microsoft.Extensions.Logging
 open System
 open System.IO
 open Bunker.Database
-
+open Bunker.Domain
+open Helpers
 
 // ---------------------------------
 // Models
 // ---------------------------------
 module DomainEntity =
-    let mapPlayer player =
+    let mapPlayer (player: Domain.Player) =
         Entities.Player(
             NickName = PlayerNickName.value player.NickName,
             FirstName = PlayerFirstName.value player.FirstName,
-            LastName = "",
-            Email = "mefgalm@gmail.com",
-            PasswordHash = [|(byte) 1|],
-            PasswordSalt = [|(byte) 3|]            
+            LastName = PlayerLastName.value player.LastName,
+            Email = Email.value player.Email,
+            PasswordHash = player.PasswordHash,
+            PasswordSalt = player.PasswordSalt                       
         )  
         
 module EntityDomain =
@@ -41,19 +41,19 @@ module EntityDomain =
         member this.Return(x) = x
 
     let private forward = new ForwardBuilder()
-
-    let mapPlayer (player: Entities.Player) = forward {
-            let! nickName = PlayerNickName.create player.NickName
-            let! firstName = PlayerFirstName.create player.FirstName
-            
-            return  { Id = PlayerId.Id player.Id
-                      NickName = nickName
-                      FirstName = firstName
-                      JoinedCompanies = []
-                      JoinedTeams = []
-                      OwnedCompanies = []
-                      OwnedTeams = [] }        
-        }
+//
+//    let mapPlayer (player: Entities.Player) = forward {
+//            let! nickName = PlayerNickName.create player.NickName
+//            let! firstName = PlayerFirstName.create player.FirstName
+//            
+//            return  { Id = PlayerId.Id player.Id
+//                      NickName = nickName
+//                      FirstName = firstName
+//                      JoinedCompanies = []
+//                      JoinedTeams = []
+//                      OwnedCompanies = []
+//                      OwnedTeams = [] }        
+//        }
 
 type Message =
     { Text : string }
@@ -130,7 +130,10 @@ let indexHandler (name : string) =
 [<CLIMutable>]
 type PlayerCreateRequest =
     { NickName : string
-      Name : string }
+      FirstName : string
+      LastName : string
+      Email: string
+      Password: string }
       
 [<CLIMutable>]
 type PlayerUpdateRequest =
@@ -141,35 +144,36 @@ type PlayerUpdateRequest =
 let createUser : HttpHandler =
     fun next ctx -> 
         task { 
-            let! model = ctx.BindJsonAsync<PlayerCreateRequest>()            
-            let playerResult = Player.create model.NickName model.Name            
-            let dbContext = ctx.GetService<BunkerDbContext>()            
+            let! model = ctx.BindJsonAsync<PlayerCreateRequest>()
+            let dbContext = ctx.GetService<BunkerDbContext>()
+            let! isUserExists = dbContext.Players.AnyAsync(fun x -> x.Email = model.Email)                 
+            let playerResult = Player.create model.NickName model.FirstName model.LastName model.Email model.Password isUserExists                     
             let saveToDb = Repository.save dbContext DomainEntity.mapPlayer playerResult
             
             return! json saveToDb next ctx
         }
-
-let updateUser : HttpHandler =
-    fun next ctx ->
-        task {
-            let! model = ctx.BindJsonAsync<PlayerUpdateRequest>()
-            let dbContext = ctx.GetService<BunkerDbContext>()
-            let dbUpdate = result {
-                let! dbPlayer = Repository.get<Entities.Player> dbContext (fun x -> x.Id = model.Id)
-            
-                let mapPlayer = EntityDomain.mapPlayer dbPlayer
-                let player = Player.update mapPlayer model.NickName model.Name
-                
-                return Repository.update dbContext DomainEntity.mapPlayer player
-            }
-            return! json dbUpdate next ctx
-        }        
+//
+//let updateUser : HttpHandler =
+//    fun next ctx ->
+//        task {
+//            let! model = ctx.BindJsonAsync<PlayerUpdateRequest>()
+//            let dbContext = ctx.GetService<BunkerDbContext>()
+//            let dbUpdate = result {
+//                let! dbPlayer = Repository.get<Entities.Player> dbContext (fun x -> x.Id = model.Id)
+//            
+//                let mapPlayer = EntityDomain.mapPlayer dbPlayer
+//                let player = Player.update mapPlayer model.NickName model.Name
+//                
+//                return Repository.update dbContext DomainEntity.mapPlayer player
+//            }
+//            return! json dbUpdate next ctx
+//        }        
 
 let webApp =
     choose [ GET >=> choose [ route "/" >=> indexHandler "world"
                               routef "/hello/%s" indexHandler ]
              POST >=> choose [ route "/user" >=> createUser ]
-             PUT >=> choose [ route "/user" >=> updateUser ]
+             //PUT >=> choose [ route "/user" >=> updateUser              
              setStatusCode 404 >=> text "Not Found" ]
 
 // ---------------------------------
