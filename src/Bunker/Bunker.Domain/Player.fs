@@ -4,14 +4,14 @@ module Player =
     open Domain
     open Helpers
     
+    let private checkUniqueEmail isEmailExists = 
+        if isEmailExists then
+           Fail ["User already exists"]
+        else Ok ()
+        
     let result = new ResultBuilder()
     
     let create nickName firstName lastName email password isUserExists =
-        let check isUserExists =
-            if isUserExists then
-                Fail ["User already exists"]
-            else Ok ()
-    
         result { 
             let! nickName = PlayerNickName.create nickName
             let! firstName = PlayerFirstName.create firstName
@@ -19,7 +19,7 @@ module Player =
             let! email = Email.create email
             let! password = PlayerPassword.create password
             
-            do! (check isUserExists)
+            do! (checkUniqueEmail isUserExists)
             
             let (passwordHash, salt) = Crypto.hashPassword (PlayerPassword.value password)
             
@@ -34,10 +34,13 @@ module Player =
                      JoinedTeams = [] }            
         }
     
-    let update player nickName firstName =
+    let update player nickName firstName lastName =
         result { 
             let! nickName = PlayerNickName.create nickName
             let! firstName = PlayerFirstName.create firstName
+            let! lastName = PlayerLastName.create lastName
+            
             return { player with NickName = nickName
-                                 FirstName = firstName }
+                                 FirstName = firstName
+                                 LastName = lastName }
         }

@@ -3,6 +3,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CompanyPlayer.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Crypto.fs" />
     <Compile Include="Types\CommonTypes.fs" />

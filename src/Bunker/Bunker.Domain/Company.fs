@@ -4,25 +4,33 @@ module Company =
     open Helpers
     open Domain
 
-//    let findCompany companyId player =
-//        match player.OwnedCompanies |> List.tryFind (fun x -> x.Id = companyId) with
-//        | Some company -> Ok company
-//        | None -> Fail [ "Company not found" ]
-//    
-//    let create companyName player =
-//        { Id = CompanyId.NewCompany
-//          Name = companyName
-//          Owners = [ player ]
-//          Challanges = []
-//          JoinedPlayers = []
-//          Teams = [] }
-//    
-//    let update player companyId companyName =
-//        companyId |> (findCompany player >> bind (fun company -> Ok { company with Name = companyName }))
-//    
-//    let addOwner owner companyId player =
-//        match owner |> findCompany companyId with
-//        | Ok company -> 
-//            if company.Owners |> List.exists ((=) player) then Fail [ "Player already added" ]
-//            else Ok { company with Owners = player :: company.Owners }
-//        | Fail errors -> Fail errors
+    let findOwnCompany companyId player =
+        match player.JoinedCompanies |> List.filter (fun x -> x.IsOwner = true) |> List.tryFind (fun x -> x.Company.Id = companyId) with
+        | Some companyPlayer -> Ok companyPlayer.Company
+        | None -> Fail [ "Company not found" ]
+    
+    let create name description joinKey player =
+        result {
+            let! name = CompanyName.create name
+            let! description = CompanyDescription.create description                        
+        
+            return { Id = CompanyId.NewCompany
+                     Name = name
+                     Description = description
+                     Players = []
+                     JoinKey = joinKey
+                     Teams = [] }
+        }
+    
+    let update player companyId name description =
+        let updateCompany name description (company: Company) =
+            Ok { company with Name = name
+                              Description = description } 
+        
+        result {
+            let! name = CompanyName.create name
+            let! description = CompanyDescription.create description                          
+        
+            return findOwnCompany companyId player 
+                    |>= updateCompany name description
+        }

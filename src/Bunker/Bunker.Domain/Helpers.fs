@@ -11,8 +11,13 @@ module Helpers =
         match f2 with
         | Ok x -> f1 x
         | Fail error -> Fail error
+        
+    let (>==) f1 f2 = f1 >> bind f2
+    
+    let (|>=) r1 f2 = (fun _ -> r1) >== f2 
     
     module Validation =
+        
         let regexCheck regex errorMessage value returnFun =
             if not <| Regex.IsMatch(value, regex) then Fail [ errorMessage ]
             else Ok <| returnFun value
