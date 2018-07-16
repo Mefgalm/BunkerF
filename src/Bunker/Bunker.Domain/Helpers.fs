@@ -14,7 +14,7 @@ module Helpers =
         
     let (>==) f1 f2 = f1 >> bind f2
     
-    let (|>=) r1 f2 = (fun _ -> r1) >== f2 
+    let (|>=) r1 f2 = (fun _ -> r1) >== f2         
     
     module Validation =
         
@@ -29,4 +29,4 @@ module Helpers =
             | Fail e -> Fail e
             | Ok a -> f a
         
-        member this.Return(x) = Ok x
+        member this.Return(x) = x        

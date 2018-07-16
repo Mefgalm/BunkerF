@@ -35,7 +35,7 @@ module EntityDomain =
     
         member this.Bind(x, f) =
             match x with
-            | Fail e -> raise <| Exception("")
+            | Fail e -> raise <| Exception("Wrong mapper")
             | Ok a -> f a
         
         member this.Return(x) = x

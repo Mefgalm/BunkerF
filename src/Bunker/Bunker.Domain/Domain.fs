@@ -71,7 +71,8 @@ module Domain =
           Description : CompanyDescription.T
           Players : CompanyPlayer list
           JoinKey : string
-          Teams : Team list }              
+          Challanges : Challange list
+          Teams : Team list }                 
     
     and Challange =
         { Id : ChallangeId
@@ -79,6 +80,7 @@ module Domain =
           Description : ChallangeDescription
           Tasks : Task list
           Company : Company
+          CreatDate : DateTime
           JoinedTeams : Team list }
     
     and Task =

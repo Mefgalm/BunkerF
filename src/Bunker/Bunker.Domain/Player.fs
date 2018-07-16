@@ -23,15 +23,15 @@ module Player =
             
             let (passwordHash, salt) = Crypto.hashPassword (PlayerPassword.value password)
             
-            return { Id = PlayerId.NewPlayer
-                     NickName = nickName
-                     FirstName = firstName
-                     LastName = lastName
-                     Email= email
-                     PasswordHash= passwordHash
-                     PasswordSalt= salt
-                     JoinedCompanies = []
-                     JoinedTeams = [] }            
+            return Ok { Id = PlayerId.NewPlayer
+                        NickName = nickName
+                        FirstName = firstName
+                        LastName = lastName
+                        Email= email
+                        PasswordHash= passwordHash
+                        PasswordSalt= salt
+                        JoinedCompanies = []
+                        JoinedTeams = [] }            
         }
     
     let update player nickName firstName lastName =
@@ -40,7 +40,7 @@ module Player =
             let! firstName = PlayerFirstName.create firstName
             let! lastName = PlayerLastName.create lastName
             
-            return { player with NickName = nickName
-                                 FirstName = firstName
-                                 LastName = lastName }
+            return Ok { player with NickName = nickName
+                                    FirstName = firstName
+                                    LastName = lastName }
         }

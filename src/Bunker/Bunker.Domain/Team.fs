@@ -4,6 +4,8 @@ module Team =
     open Domain
     open Helpers
     
+    
+    
 //    let findTeam player teamId =
 //        match player.OwnedTeams |> List.tryFind (fun x -> x.Id = teamId) with
 //        | Some company -> Ok company
