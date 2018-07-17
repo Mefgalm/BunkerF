@@ -6,7 +6,7 @@ module Domain =
     open System
     open System.Text.RegularExpressions
     
-    let result = new ResultBuilder()       
+    let result = new ResultBuilder()
     
     module CompanyId =
         type T =
@@ -16,7 +16,7 @@ module Domain =
         let value e =
             function 
             | NewCompany -> 0
-            | Id x -> x    
+            | Id x -> x
     
     type ChallangeId =
         | NewChallange
@@ -52,18 +52,18 @@ module Domain =
         { Id : PlayerId.T
           NickName : PlayerNickName.T
           FirstName : PlayerFirstName.T
-          LastName: PlayerLastName.T
-          Email: Email.T
-          PasswordHash: byte array
-          PasswordSalt: byte array
+          LastName : PlayerLastName.T
+          Email : Email.T
+          PasswordHash : byte array
+          PasswordSalt : byte array
           JoinedCompanies : CompanyPlayer list
-          JoinedTeams : Team list }
+          JoinedTeams : TeamPlayer list }
     
     and CompanyPlayer =
-        { Company: Company
-          Player: Player
-          IsOwner: bool 
-          JoinDate: DateTime }
+        { Company : Company
+          Player : Player
+          IsOwner : bool
+          JoinDate : DateTime }
     
     and Company =
         { Id : CompanyId.T
@@ -72,7 +72,8 @@ module Domain =
           Players : CompanyPlayer list
           JoinKey : string
           Challanges : Challange list
-          Teams : Team list }                 
+          CreateDate : DateTime
+          Teams : Team list }
     
     and Challange =
         { Id : ChallangeId
@@ -90,16 +91,22 @@ module Domain =
           Description : TaskDescription
           Answer : TaskAnswer }
     
+    and TeamPlayer =
+        { Player : Player
+          Team : Team
+          IsCaptaine : bool
+          JoinDate : DateTime }
+    
     and Team =
         { Id : TeamId
           Name : TeamName
           Owner : Player
           Description : TeamDescription
           Company : Company
-          Players : Player list
+          Players : TeamPlayer list
           Challanges : Challange list }
     
     and Answer =
         { Id : AnswerId
           Task : Task
-          Player : Player }              
+          Player : Player }
