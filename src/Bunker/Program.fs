@@ -1,7 +1,9 @@
 module BrainBunker.App
 
 open Bunker.Database
+open Bunker.Domain
 open Giraffe
+open Helpers
 open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Cors.Infrastructure
@@ -11,36 +13,31 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open System
 open System.IO
-open Bunker.Database
-open Bunker.Domain
-open Helpers
+open System.Linq
+open Bunker.Database.Repository
 
 // ---------------------------------
 // Models
 // ---------------------------------
 module DomainEntity =
-    let mapPlayer (player: Domain.Player) =
-        Entities.Player(
-            NickName = PlayerNickName.value player.NickName,
-            FirstName = PlayerFirstName.value player.FirstName,
-            LastName = PlayerLastName.value player.LastName,
-            Email = Email.value player.Email,
-            PasswordHash = player.PasswordHash,
-            PasswordSalt = player.PasswordSalt                       
-        )  
-        
+    let mapPlayer (player : Domain.Player) =
+        Entities.Player
+            (NickName = PlayerNickName.value player.NickName, FirstName = PlayerFirstName.value player.FirstName, 
+             LastName = PlayerLastName.value player.LastName, Email = Email.value player.Email, 
+             PasswordHash = player.PasswordHash, PasswordSalt = player.PasswordSalt)
+
 module EntityDomain =
-    
     type ForwardBuilder() =
-    
+        
         member this.Bind(x, f) =
             match x with
             | Fail e -> raise <| Exception("Wrong mapper")
             | Ok a -> f a
         
         member this.Return(x) = x
-
+    
     let private forward = new ForwardBuilder()
+
 //
 //    let mapPlayer (player: Entities.Player) = forward {
 //            let! nickName = PlayerNickName.create player.NickName
@@ -54,52 +51,15 @@ module EntityDomain =
 //                      OwnedCompanies = []
 //                      OwnedTeams = [] }        
 //        }
-
 type Message =
     { Text : string }
-    
 
-type MaybeBuilder() =
-    
-    member this.Bind(x, f) =
-        match x with
-        | None -> None
-        | Some e -> e
-    
-    member this.Return(x) = Some x
-   
-let maybe = new MaybeBuilder() 
+let result = new ResultBuilder()
 
 // ---------------------------------
 // Views
 // ---------------------------------
 
-module Repository =
-    
-    let save<'a when 'a : not struct> (dbContext: BunkerDbContext) mapper domainObject =                 
-        match domainObject with
-        | Ok domObj -> 
-            try 
-                dbContext.Set<'a>().Add(domObj |> mapper) |> ignore
-                dbContext.SaveChanges() |> ignore
-                Ok domObj
-            with e -> Fail [e.Message] 
-        | Fail e -> Fail e
-        
-    let get<'a when 'a : not struct> (dbContext: BunkerDbContext) selector =
-        match dbContext.Set<'a>() |> Seq.tryFind selector with
-        | Some e -> Ok e
-        | None -> Fail ["Entity not found"]
-        
-    let update<'a when 'a : not struct> (dbContext: BunkerDbContext) mapper domainObject =                 
-        match domainObject with
-        | Ok domObj -> 
-            try 
-                dbContext.Set<'a>().Update(domObj |> mapper) |> ignore
-                dbContext.SaveChanges() |> ignore
-                Ok domObj
-            with e -> Fail [e.Message] 
-        | Fail e -> Fail e               
 
 module Views =
     open GiraffeViewEngine
@@ -132,47 +92,40 @@ type PlayerCreateRequest =
     { NickName : string
       FirstName : string
       LastName : string
-      Email: string
-      Password: string }
-      
+      Email : string
+      Password : string }
+
 [<CLIMutable>]
 type PlayerUpdateRequest =
     { Id : int
       NickName : string
       Name : string }
 
+let userCreate model userExists createUser saveDb mapper =
+    result { 
+        let! isUserExists = userExists model.Email
+        let! playerResult = createUser model.NickName model.FirstName model.LastName model.Email model.Password isUserExists
+        return saveDb (playerResult |> mapper)
+    }
+
 let createUser : HttpHandler =
     fun next ctx -> 
         task { 
             let! model = ctx.BindJsonAsync<PlayerCreateRequest>()
-            let dbContext = ctx.GetService<BunkerDbContext>()
-            let! isUserExists = dbContext.Players.AnyAsync(fun x -> x.Email = model.Email)                 
-            let playerResult = Player.create model.NickName model.FirstName model.LastName model.Email model.Password isUserExists                     
-            let saveToDb = Repository.save dbContext DomainEntity.mapPlayer playerResult
-            
-            return! json saveToDb next ctx
+            let dbContext = ctx.GetService<BunkerDbContext>()           
+                        
+            let createUserResult = userCreate model (PlayerRepository.emailExists dbContext) Player.create (Repository.save dbContext) DomainEntity.mapPlayer
+                        
+            return! json createUserResult next ctx
         }
-//
-//let updateUser : HttpHandler =
-//    fun next ctx ->
-//        task {
-//            let! model = ctx.BindJsonAsync<PlayerUpdateRequest>()
-//            let dbContext = ctx.GetService<BunkerDbContext>()
-//            let dbUpdate = result {
-//                let! dbPlayer = Repository.get<Entities.Player> dbContext (fun x -> x.Id = model.Id)
-//            
-//                let mapPlayer = EntityDomain.mapPlayer dbPlayer
-//                let player = Player.update mapPlayer model.NickName model.Name
-//                
-//                return Repository.update dbContext DomainEntity.mapPlayer player
-//            }
-//            return! json dbUpdate next ctx
-//        }        
-
+  
 let webApp =
     choose [ GET >=> choose [ route "/" >=> indexHandler "world"
                               routef "/hello/%s" indexHandler ]
              POST >=> choose [ route "/user" >=> createUser ]
+             //             PUT >=> choose [
+             //                route "user" >=> 
+             //             ]
              //PUT >=> choose [ route "/user" >=> updateUser              
              setStatusCode 404 >=> text "Not Found" ]
 

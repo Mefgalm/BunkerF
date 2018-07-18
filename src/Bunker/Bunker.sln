@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bunker.Database", "Bunker.D
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bunker.Domain", "Bunker.Domain\Bunker.Domain.fsproj", "{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Bunker.Database.Repository", "Bunker.Database.Repository\Bunker.Database.Repository.fsproj", "{98E244FA-1438-4D33-9F73-E393B5D8CFF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D78744AD-9D2B-4332-81A2-39F6BEC89A8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98E244FA-1438-4D33-9F73-E393B5D8CFF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98E244FA-1438-4D33-9F73-E393B5D8CFF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98E244FA-1438-4D33-9F73-E393B5D8CFF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98E244FA-1438-4D33-9F73-E393B5D8CFF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

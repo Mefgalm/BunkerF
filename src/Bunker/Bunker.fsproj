@@ -29,6 +29,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Bunker.Database.Repository\Bunker.Database.Repository.fsproj" />
     <ProjectReference Include="Bunker.Database\Bunker.Database.csproj" />
     <ProjectReference Include="Bunker.Domain\Bunker.Domain.fsproj" />
   </ItemGroup>
