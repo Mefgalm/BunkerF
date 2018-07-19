@@ -15,6 +15,7 @@ open System
 open System.IO
 open System.Linq
 open Bunker.Database.Repository
+open Bunker.Requests
 
 // ---------------------------------
 // Models
@@ -87,19 +88,6 @@ let indexHandler (name : string) =
     let view = Views.index model
     htmlView view
 
-[<CLIMutable>]
-type PlayerCreateRequest =
-    { NickName : string
-      FirstName : string
-      LastName : string
-      Email : string
-      Password : string }
-
-[<CLIMutable>]
-type PlayerUpdateRequest =
-    { Id : int
-      NickName : string
-      Name : string }
 
 let userCreate model userExists createUser saveDb mapper =
     result { 
